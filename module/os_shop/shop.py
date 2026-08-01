@@ -268,7 +268,7 @@ class OSShop(PortShop, AkashiShop):
     @cached_property
     def yellow_coins_preserve(self):
         if self.is_cl1_enabled:
-            return 100000
+            return self.config.cross_get(keys=['OpsiHazard1Leveling', 'YellowCoinsPreserve'])
         else:
             return 35000
 

@@ -2579,7 +2579,7 @@
   "OpsiHazard1Leveling": {
     "_info": {
       "name": "CL1 leveling",
-      "help": "Consume operation coins to gain a lot of experience and a little action points.\nRecommended to carry 1-2 pre-loaded CV to obtain the highest average hourly benefit.\n\nTo avoid being unable to buying goods from port shops, Alas will retain 100,000 operation coins\nSince buying action points at the mystery shop requires a large number of operation coins, this function will be supplemented by running meowfficer farming with overflow action points."
+      "help": "Consume operation coins to gain a lot of experience and a little action points.\nRecommended to carry 1-2 pre-loaded CV to obtain the highest average hourly benefit.\n\nWhen the Mystery Shop refreshes, buy action points with operation coins; they are stored as boxes. Current action points are kept below 200 so natural regeneration keeps running.\nWhen operation coins fall below [Yellow Coins Preserve], CL1 is paused and a coin-replenish task runs (Siren Stronghold -> Obscure -> Abyssal -> Meowfficer Farming).\nOn the last day before the OpSi reset (less than 24h left), if total action points exceed [Last Day AP Threshold], run Meowfficer Farming to burn action points."
     },
     "TargetZone": {
       "name": "Target Zone ID",
@@ -2587,6 +2587,18 @@
       "0": "No Specification",
       "44": "44 | West Continental Shelf D",
       "22": "22 | NA Ocean SW Sector B"
+    },
+    "YellowCoinsPreserve": {
+      "name": "Yellow Coins Preserve",
+      "help": "When operation coins (yellow coins) fall below this value, pause CL1 and run a coin-replenish task.\nAlso the spending floor when buying action points at the Mystery Shop.\nRecommended >= 20200 (the most expensive single shop AP purchase)."
+    },
+    "YellowCoinsReturn": {
+      "name": "Replenish Target",
+      "help": "Coin-replenish tasks run until operation coins reach this value, then return to CL1.\nThe gap from the preserve line controls the replenish cadence."
+    },
+    "LastDayActionPointThreshold": {
+      "name": "Last Day AP Threshold",
+      "help": "On the day before the OpSi reset (less than 24h left), if total action points (current + boxes) exceed this value, stop CL1 and run Meowfficer Farming to burn action points."
     }
   },
   "Daemon": {

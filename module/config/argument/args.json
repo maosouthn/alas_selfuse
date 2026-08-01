@@ -9301,6 +9301,18 @@
           44,
           22
         ]
+      },
+      "YellowCoinsPreserve": {
+        "type": "input",
+        "value": 40000
+      },
+      "YellowCoinsReturn": {
+        "type": "input",
+        "value": 60000
+      },
+      "LastDayActionPointThreshold": {
+        "type": "input",
+        "value": 10000
       }
     },
     "OpsiFleet": {

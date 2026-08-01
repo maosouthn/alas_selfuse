@@ -45,5 +45,11 @@ class OpsiObscure(OSMap):
             if self.config.OpsiObscure_ForceRun:
                 self.config.check_task_switch()
                 continue
+            elif self.is_cl1_enabled:
+                # CL1 is running and dispatched this task to replenish yellow coins.
+                # Clear one obscure zone, then yield back to CL1.
+                logger.info('CL1 enabled, yield to CL1 after clearing one obscure zone')
+                self.config.task_delay(minute=30)
+                self.config.task_stop()
             else:
                 break

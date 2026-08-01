@@ -50,7 +50,8 @@ class OSCampaignRun(OSMapOperation):
                 self.config.task_delay(server_update=True)
                 self.config.task_call('Reward')
                 if self.config.is_task_enabled('OpsiHazard1Leveling') \
-                        and self.get_yellow_coins() > self.config.OS_CL1_YELLOW_COINS_PRESERVE:
+                        and self.get_yellow_coins() >= self.config.cross_get(
+                            keys=['OpsiHazard1Leveling', 'YellowCoinsReturn']):
                     self.config.task_call('OpsiHazard1Leveling')
             else:
                 logger.info('Just less than 1 day to OpSi reset, delay 2.5 hours')

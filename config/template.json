@@ -1909,7 +1909,10 @@
       "ServerUpdate": "00:00, 12:00"
     },
     "OpsiHazard1Leveling": {
-      "TargetZone": 0
+      "TargetZone": 0,
+      "YellowCoinsPreserve": 40000,
+      "YellowCoinsReturn": 60000,
+      "LastDayActionPointThreshold": 10000
     },
     "OpsiFleet": {
       "Fleet": 1,

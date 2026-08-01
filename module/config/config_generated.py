@@ -441,6 +441,9 @@ class GeneratedConfig:
 
     # Group `OpsiHazard1Leveling`
     OpsiHazard1Leveling_TargetZone = 0  # 0, 44, 22
+    OpsiHazard1Leveling_YellowCoinsPreserve = 40000
+    OpsiHazard1Leveling_YellowCoinsReturn = 60000
+    OpsiHazard1Leveling_LastDayActionPointThreshold = 10000
 
     # Group `Daemon`
     Daemon_EnterMap = True

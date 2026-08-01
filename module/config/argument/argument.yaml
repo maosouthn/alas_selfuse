@@ -746,6 +746,9 @@ OpsiHazard1Leveling:
   TargetZone:
     value: 0
     option: [ 0, 44, 22 ]
+  YellowCoinsPreserve: 40000
+  YellowCoinsReturn: 60000
+  LastDayActionPointThreshold: 10000
 
 # ==================== Tools ====================
 
