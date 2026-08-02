@@ -640,8 +640,10 @@ class ConfigUpdater:
             deep_set(new, 'Alas.DropRecord.AzurStatsID', None)
         else:
             deep_default(new, 'Alas.DropRecord.AzurStatsID', random_id())
-        if deep_get(new, keys='OpsiHazard1Leveling.Scheduler.Enable'):
-            deep_set(new, keys='OpsiMeowfficerFarming.Scheduler.Enable', value=True)
+        # Local tweak: CL1 no longer forces the meowfficer farming (shortcat)
+        # task to be enabled. Upstream auto-enables it whenever
+        # 'OpsiHazard1Leveling.Scheduler.Enable' is set, which surprises users
+        # who don't run shortcat. Keep the user's own scheduler choice.
         # Update to latest event
         server = to_server(deep_get(new, 'Alas.Emulator.PackageName', 'cn'))
         if not is_template:

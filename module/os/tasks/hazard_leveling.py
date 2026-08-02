@@ -6,8 +6,10 @@ from module.os.map import OSMap
 
 
 class OpsiHazard1Leveling(OSMap):
-    # Tasks to replenish yellow coins, limited tasks first and meowfficer farming as fallback
-    YELLOW_COINS_REPLENISH_TASKS = ['OpsiStronghold', 'OpsiObscure', 'OpsiAbyssal', 'OpsiMeowfficerFarming']
+    # Tasks to replenish yellow coins, limited tasks first.
+    # (Upstream also falls back to meowfficer farming, which yanks CL1 to shortcat
+    # whenever yellow coins are low. Local tweak: never auto-run shortcat.)
+    YELLOW_COINS_REPLENISH_TASKS = ['OpsiStronghold', 'OpsiObscure', 'OpsiAbyssal']
 
     def _pick_yellow_coins_task(self):
         """
@@ -39,8 +41,8 @@ class OpsiHazard1Leveling(OSMap):
             OpsiGeneral_DoRandomMapEvent=True,
             OpsiGeneral_AkashiShopFilter='ActionPoint',
         )
-        if not self.config.is_task_enabled('OpsiMeowfficerFarming'):
-            self.config.cross_set(keys='OpsiMeowfficerFarming.Scheduler.Enable', value=True)
+        # Local tweak: upstream auto-enables 'OpsiMeowfficerFarming' here,
+        # forcing shortcat on whenever CL1 runs. Keep the user's scheduler choice.
         while True:
             # Limited action point preserve of hazard 1 to 200
             self.config.OS_ACTION_POINT_PRESERVE = 200
@@ -55,7 +57,7 @@ class OpsiHazard1Leveling(OSMap):
             yellow_coins_preserve = self.config.cross_get(keys=['OpsiHazard1Leveling', 'YellowCoinsPreserve'])
             last_day_ap_threshold = self.config.cross_get(keys=['OpsiHazard1Leveling', 'LastDayActionPointThreshold'])
 
-            # Replenish yellow coins if below the preserve, limited tasks first and meow as fallback.
+            # Replenish yellow coins if below the preserve, limited tasks first.
             # CL1 is the lowest priority task in the scheduler, so the replenish task runs first
             # after this task stops, and returns here when the replenish task is exhausted.
             # Do not replenish on the last day, yellow coins will be reset anyway.
