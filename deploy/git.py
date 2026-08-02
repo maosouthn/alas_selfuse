@@ -67,7 +67,7 @@ class GitManager(DeployConfig):
                 os.remove(lock_file)
         # Merge upstream master into the working branch, so local modifications are kept.
         # (The old `git reset --hard` deleted all local modifications.)
-                if not self.execute(f'"{self.git}" rev-parse --verify HEAD', allow_failure=True):
+        if not self.execute(f'"{self.git}" rev-parse --verify HEAD', allow_failure=True):
             # Fresh install: no local commits yet, create the working branch from upstream
             self.execute(f'"{self.git}" checkout -b {branch} {source}/master')
         elif not self.execute(f'"{self.git}" merge {source}/master --no-edit', allow_failure=True):
