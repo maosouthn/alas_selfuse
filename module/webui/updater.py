@@ -91,15 +91,10 @@ class Updater(DeployConfig, GitManager, PipManager):
             logger.warning("Git fetch failed")
             return False
 
-        log = self.execute_output(
-            f'"{self.git}" log --not --remotes={source}/* -1 --oneline'
-        )
-        if log:
-            logger.info(
-                f"Cannot find local commit {log.split()[0]} in upstream, skip update"
-            )
-            return False
-
+        # The updater now merges `origin/master` into the current branch (see
+        # deploy/git.py), so local-only commits are kept. The old guard that
+        # skipped updates when local commits were absent upstream is removed,
+        # otherwise the GUI would never offer an update on a custom branch.
         sha1, _, _, message = self.get_commit(f"..{source}/{self.Branch}")
 
         if sha1:
