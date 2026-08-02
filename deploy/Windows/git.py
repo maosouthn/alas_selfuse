@@ -4,6 +4,7 @@ import os
 from deploy.Windows.config import DeployConfig
 from deploy.Windows.logger import Progress, logger
 from deploy.Windows.utils import cached_property
+from deploy.config import ExecutionError
 from deploy.git_over_cdn.client import GitOverCdnClient
 
 
@@ -103,12 +104,32 @@ class GitManager(DeployConfig):
             if os.path.exists(lock_file):
                 logger.info(f'Lock file {lock_file} exists, removing')
                 os.remove(lock_file)
-        self.execute(f'"{self.git}" reset --hard {source}/{branch}')
-        Progress.GitReset()
-        # Since `git fetch` is already called, checkout is faster
+        # Merge upstream into the working branch, so local modifications are kept.
+        # (The old `git reset --hard` deleted all local modifications.)
         if not self.execute(f'"{self.git}" checkout {branch}', allow_failure=True):
-            self.execute(f'"{self.git}" pull --ff-only {source} {branch}')
+            logger.info(f'Branch `{branch}` does not exist, create it from `{source}/{branch}`')
+            self.execute(f'"{self.git}" checkout -b {branch} {source}/{branch}')
         Progress.GitCheckout()
+        if not self.execute(f'"{self.git}" merge {source}/{branch} --no-edit', allow_failure=True):
+            logger.hr('Merge conflict detected', 0)
+            logger.info('Please resolve the conflict manually:')
+            logger.info('  git status            # list conflicted files')
+            logger.info('  # edit the files to keep both sides, remove <<<<<<< ======= >>>>>>> marks')
+            logger.info('  git add . && git commit -m "Resolve merge conflict"')
+            logger.info('Then re-open Alas, and update again.')
+            raise ExecutionError
+        Progress.GitReset()
+        # Regenerate and commit generated config files, in case upstream changed arguments
+        self.execute(
+            f'"{self.filepath("PythonExecutable")}" -m module.config.config_updater',
+            allow_failure=True,
+        )
+        self.execute(
+            f'"{self.git}" add config/template.json module/config/config_generated.py '
+            f'module/config/argument/args.json module/config/argument/menu.json module/config/i18n/',
+            allow_failure=True,
+        )
+        self.execute(f'"{self.git}" commit -m "Update generated config"', allow_failure=True)
 
         logger.hr('Show Version', 1)
         self.execute(f'"{self.git}" --no-pager log --no-merges -1')
