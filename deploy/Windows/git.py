@@ -91,7 +91,7 @@ class GitManager(DeployConfig):
         Progress.GitSetRepo()
 
         logger.hr('Fetch Repository Branch', 1)
-        self.execute(f'"{self.git}" fetch {source} {branch}')
+        self.execute(f'"{self.git}" fetch {source} master')
         Progress.GitFetch()
 
         logger.hr('Pull Repository Branch', 1)
@@ -104,13 +104,13 @@ class GitManager(DeployConfig):
             if os.path.exists(lock_file):
                 logger.info(f'Lock file {lock_file} exists, removing')
                 os.remove(lock_file)
-        # Merge upstream into the working branch, so local modifications are kept.
+        # Merge upstream master into the working branch, so local modifications are kept.
         # (The old `git reset --hard` deleted all local modifications.)
         if not self.execute(f'"{self.git}" checkout {branch}', allow_failure=True):
-            logger.info(f'Branch `{branch}` does not exist, create it from `{source}/{branch}`')
-            self.execute(f'"{self.git}" checkout -b {branch} {source}/{branch}')
+            logger.info(f'Branch `{branch}` does not exist, create it from `{source}/master`')
+            self.execute(f'"{self.git}" checkout -b {branch} {source}/master')
         Progress.GitCheckout()
-        if not self.execute(f'"{self.git}" merge {source}/{branch} --no-edit', allow_failure=True):
+        if not self.execute(f'"{self.git}" merge {source}/master --no-edit', allow_failure=True):
             logger.hr('Merge conflict detected', 0)
             logger.info('Please resolve the conflict manually:')
             logger.info('  git status            # list conflicted files')

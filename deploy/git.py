@@ -50,7 +50,10 @@ class GitManager(DeployConfig):
             self.execute(f'"{self.git}" remote add {source} {repo}')
 
         logger.hr('Fetch Repository Branch', 1)
-        self.execute(f'"{self.git}" fetch {source} {branch}')
+        # Fetch the upstream master branch, not the local working branch.
+        # `branch` is the local working branch (e.g. `hazard1-tweak`); upstream ALAS
+        # only has `master`, so fetching `{branch}` here would fail.
+        self.execute(f'"{self.git}" fetch {source} master')
 
         logger.hr('Pull Repository Branch', 1)
         # Remove git lock
@@ -62,12 +65,12 @@ class GitManager(DeployConfig):
             if os.path.exists(lock_file):
                 logger.info(f'Lock file {lock_file} exists, removing')
                 os.remove(lock_file)
-        # Merge upstream into the working branch, so local modifications are kept.
+        # Merge upstream master into the working branch, so local modifications are kept.
         # (The old `git reset --hard` deleted all local modifications.)
         if not self.execute(f'"{self.git}" checkout {branch}', allow_failure=True):
-            logger.info(f'Branch `{branch}` does not exist, create it from `{source}/{branch}`')
-            self.execute(f'"{self.git}" checkout -b {branch} {source}/{branch}')
-        if not self.execute(f'"{self.git}" merge {source}/{branch} --no-edit', allow_failure=True):
+            logger.info(f'Branch `{branch}` does not exist, create it from `{source}/master`')
+            self.execute(f'"{self.git}" checkout -b {branch} {source}/master')
+        if not self.execute(f'"{self.git}" merge {source}/master --no-edit', allow_failure=True):
             logger.hr('Merge conflict detected', 0)
             logger.info('Please resolve the conflict manually:')
             logger.info('  git status            # list conflicted files')
