@@ -764,11 +764,18 @@ class OSMap(OSFleet, Map, GlobeCamera, StrategicSearchHandler):
     _solved_map_event = set()
     _solved_fleet_mechanism = 0
 
-    def run_strategic_search(self):
-        self.handle_ash_beacon_attack()
+    def _os_search_round(self, strategic=False):
+        """
+        Run auto search once, then solve map events (question marks, Akashi shop, scanning devices).
 
-        logger.hr('Run strategy search', level=2)
-        self.os_auto_search_run(strategic=True)
+        Args:
+            strategic (bool): True to use strategic search (plan operation, repeat mode).
+
+        Pages:
+            in: IN_MAP
+            out: IN_MAP
+        """
+        self.os_auto_search_run(strategic=strategic)
 
         self.hp_reset()
         self.hp_get()
@@ -776,6 +783,16 @@ class OSMap(OSFleet, Map, GlobeCamera, StrategicSearchHandler):
         self._solved_fleet_mechanism = False
         self.clear_question()
         self.map_rescan()
+
+    def run_strategic_search(self):
+        self.handle_ash_beacon_attack()
+
+        logger.hr('Run strategy search', level=2)
+        # Local tweak: clear the current map with a normal auto search first,
+        # solving question marks / Akashi shop / scanning devices before starting
+        # strategic search, so the repeat rounds won't be interrupted by them.
+        self._os_search_round()
+        self._os_search_round(strategic=True)
 
     def map_rescan_current(self, drop=None):
         """
@@ -917,8 +934,9 @@ class OSMap(OSFleet, Map, GlobeCamera, StrategicSearchHandler):
         if self.zone.is_port:
             logger.info('Current zone is a port, do not need rescan')
             return False
-        if self.is_cl1_enabled and not self.config.is_task_enabled('OpsiMeowfficerFarming'):
-            return False
+        # Local tweak: upstream skips rescan entirely when CL1 is enabled and
+        # meowfficer farming is disabled, so CL1 never visits Akashi's shop or
+        # solves map devices. Let CL1 rescan like other OS tasks.
 
         for _ in range(5):
             if not self._solved_fleet_mechanism:
