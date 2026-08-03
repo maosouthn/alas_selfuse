@@ -346,6 +346,14 @@ class AzurLaneAutoScript:
         from module.campaign.os_run import OSCampaignRun
         OSCampaignRun(config=self.config, device=self.device).opsi_cross_month()
 
+    def emulator_restart(self):
+        from module.os.tasks.emulator_restart import EmulatorRestart
+        EmulatorRestart(config=self.config, device=self.device).run()
+        # The emulator has been rebooted, the old device holds a stale connection
+        # (control/screenshot agents, adb state). Drop it so the next task builds
+        # a fresh Device and re-initializes everything against the new boot.
+        del_cached_property(self, 'device')
+
     def main(self):
         from module.campaign.run import CampaignRun
         CampaignRun(config=self.config, device=self.device).run(

@@ -46,6 +46,10 @@
       "name": "Restart",
       "help": ""
     },
+    "EmulatorRestart": {
+      "name": "Scheduled emulator restart",
+      "help": "    Restart the emulator and ADB on a timer, to relieve adb glitches and emulator memory leaks. When the timer fires while a task is running, the restart waits until the current round of that task ends, combat is never interrupted. The emulator is shut down and started again, the game will reload.\n    The interval is set in the \"Emulator restart settings\" section below, 0 to disable."
+    },
     "Main": {
       "name": "Main",
       "help": ""
@@ -452,6 +456,16 @@
     "AdbRestart": {
       "name": "Try to restart adb when no device found",
       "help": ""
+    }
+  },
+  "EmulatorRestart": {
+    "_info": {
+      "name": "Emulator restart settings",
+      "help": ""
+    },
+    "RestartEmulatorInterval": {
+      "name": "Emulator restart interval (hours)",
+      "help": "Restart the emulator and ADB on a timer, to relieve adb glitches and emulator memory leaks. 0 to disable. When the timer fires while a task is running, the restart waits until the current round ends, combat is never interrupted."
     }
   },
   "EmulatorInfo": {

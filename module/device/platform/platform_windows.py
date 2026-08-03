@@ -92,14 +92,19 @@ class PlatformWindows(PlatformBase, EmulatorManager):
             # NemuPlayer.exe -m nemu-12.0-x64-default
             self.execute(f'"{exe}" -m {instance.name}')
         elif instance == Emulator.MuMuPlayer12:
-            # MuMuManager.exe api -v 0 launch_player
+            # MuMuManager.exe control -v 0 restart
             # Launch via MuMuManager instead of MuMuPlayer.exe/MuMuNxMain.exe.
             # MuMuNxMain.exe is a GUI singleton, if two instances get launched at the same time,
             # the second launch request is handed over to a MuMuNxMain.exe that is still initializing
             # and gets silently dropped, while MuMuManager queues requests in backend service.
+            # Local tweak: recent MuMu 12 builds replaced the `api -v {id} launch_player` CLI
+            # with `control -v {id} launch`, and shutdown is async. A launch sent right after
+            # shutdown races the still-exiting process and never comes up (watch times out at 180s).
+            # Use the atomic `control -v {id} restart` instead, MuMuManager coordinates the
+            # shutdown/startup order itself and it also works from a stopped instance.
             if instance.MuMuPlayer12_id is None:
                 logger.warning(f'Cannot get MuMu instance index from name {instance.name}')
-            self.execute(f'"{Emulator.single_to_console(exe)}" api -v {instance.MuMuPlayer12_id} launch_player')
+            self.execute(f'"{Emulator.single_to_console(exe)}" control -v {instance.MuMuPlayer12_id} restart')
         elif instance == Emulator.LDPlayerFamily:
             # ldconsole.exe launch --index 0
             self.execute(f'"{Emulator.single_to_console(exe)}" launch --index {instance.LDPlayer_id}')
@@ -152,10 +157,12 @@ class PlatformWindows(PlatformBase, EmulatorManager):
                 rf')'
             )
         elif instance == Emulator.MuMuPlayer12:
-            # MuMuManager.exe api -v 1 shutdown_player
+            # MuMuManager.exe control -v 1 shutdown
+            # Local tweak: recent MuMu 12 builds replaced the `api -v {id} shutdown_player` CLI
+            # with `control -v {id} shutdown`, the old subcommand is gone.
             if instance.MuMuPlayer12_id is None:
                 logger.warning(f'Cannot get MuMu instance index from name {instance.name}')
-            self.execute(f'"{Emulator.single_to_console(exe)}" api -v {instance.MuMuPlayer12_id} shutdown_player')
+            self.execute(f'"{Emulator.single_to_console(exe)}" control -v {instance.MuMuPlayer12_id} shutdown')
         elif instance == Emulator.LDPlayerFamily:
             # ldconsole.exe quit --index 0
             self.execute(f'"{Emulator.single_to_console(exe)}" quit --index {instance.LDPlayer_id}')

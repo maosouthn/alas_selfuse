@@ -21,6 +21,9 @@ Alas:
       - OldRetire
     Restart:
       - Scheduler
+    EmulatorRestart:
+      - Scheduler
+      - EmulatorRestart
 
 # ==================== Farm ====================
 

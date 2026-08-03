@@ -55,6 +55,9 @@ Emulator:
     ]
   ScreenshotDedithering: false
   AdbRestart: false
+EmulatorRestart:
+  RestartEmulatorInterval:
+    value: 6
 EmulatorInfo:
   Emulator:
     value: auto

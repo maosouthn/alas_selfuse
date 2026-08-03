@@ -77,6 +77,22 @@
       "Storage": {}
     }
   },
+  "EmulatorRestart": {
+    "Scheduler": {
+      "Enable": false,
+      "NextRun": "2020-01-01 00:00:00",
+      "Command": "EmulatorRestart",
+      "SuccessInterval": 0,
+      "FailureInterval": 120,
+      "ServerUpdate": "00:00"
+    },
+    "EmulatorRestart": {
+      "RestartEmulatorInterval": 6
+    },
+    "Storage": {
+      "Storage": {}
+    }
+  },
   "Main": {
     "Scheduler": {
       "Enable": false,

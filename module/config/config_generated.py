@@ -26,6 +26,9 @@ class GeneratedConfig:
     Emulator_ScreenshotDedithering = False
     Emulator_AdbRestart = False
 
+    # Group `EmulatorRestart`
+    EmulatorRestart_RestartEmulatorInterval = 6
+
     # Group `EmulatorInfo`
     EmulatorInfo_Emulator = 'auto'  # auto, NoxPlayer, NoxPlayer64, BlueStacks4, BlueStacks5, BlueStacks4HyperV, BlueStacks5HyperV, LDPlayer3, LDPlayer4, LDPlayer9, LDPlayer14, MuMuPlayer, MuMuPlayerX, MuMuPlayer12, MEmuPlayer
     EmulatorInfo_name = None
