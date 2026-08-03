@@ -53,7 +53,10 @@ class GitManager(DeployConfig):
         # Fetch the upstream master branch, not the local working branch.
         # `branch` is the local working branch (e.g. `hazard1-tweak`); upstream ALAS
         # only has `master`, so fetching `{branch}` here would fail.
-        self.execute(f'"{self.git}" fetch {source} master')
+        # Local tweak: a failed fetch (e.g. no network to GitHub) must not block
+        # startup. Skip the update and continue, the GUI reports the failed check.
+        if not self.execute(f'"{self.git}" fetch {source} master', allow_failure=True):
+            logger.warning('Failed to fetch upstream master, skip update and continue')
 
         logger.hr('Pull Repository Branch', 1)
         # Remove git lock
