@@ -54,8 +54,10 @@ class OpsiHazard1Leveling(OSMap):
             logger.attr('OS_ACTION_POINT_PRESERVE', self.config.OS_ACTION_POINT_PRESERVE)
 
             remain = get_os_reset_remain()
-            yellow_coins_preserve = self.config.cross_get(keys=['OpsiHazard1Leveling', 'YellowCoinsPreserve'])
-            last_day_ap_threshold = self.config.cross_get(keys=['OpsiHazard1Leveling', 'LastDayActionPointThreshold'])
+            yellow_coins_preserve = self.config.cross_get(
+                keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsPreserve'])
+            last_day_ap_threshold = self.config.cross_get(
+                keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'LastDayActionPointThreshold'])
 
             # Replenish yellow coins if below the preserve, limited tasks first.
             # CL1 is the lowest priority task in the scheduler, so the replenish task runs first
