@@ -2121,7 +2121,6 @@
         "type": "select",
         "value": "campaign_main",
         "option": [
-          "coalition_20230323",
           "coalition_20260723"
         ],
         "option_cn": [
@@ -2134,10 +2133,9 @@
           "coalition_20260723"
         ],
         "option_tw": [
-          "coalition_20230323"
+          "coalition_20260723"
         ],
         "option_bold": [
-          "coalition_20230323",
           "coalition_20260723"
         ]
       },
@@ -4201,7 +4199,6 @@
         "type": "select",
         "value": "campaign_main",
         "option": [
-          "coalition_20230323",
           "coalition_20260723"
         ],
         "option_cn": [
@@ -4214,10 +4211,9 @@
           "coalition_20260723"
         ],
         "option_tw": [
-          "coalition_20230323"
+          "coalition_20260723"
         ],
         "option_bold": [
-          "coalition_20230323",
           "coalition_20260723"
         ]
       },
