@@ -43,7 +43,7 @@ class OpsiMeowfficerFarming(OSMap):
             self.config.OS_ACTION_POINT_PRESERVE = preserve
             if self.config.is_task_enabled('OpsiAshBeacon') \
                     and not self._ash_fully_collected \
-                    and self.config.OpsiAshBeacon_EnsureFullyCollected:
+                    and self.config.cross_get("OpsiAshBeacon.OpsiAshBeacon.EnsureFullyCollected", True):
                 logger.info('Ash beacon not fully collected, ignore action point limit temporarily')
                 self.config.OS_ACTION_POINT_PRESERVE = 0
             logger.attr('OS_ACTION_POINT_PRESERVE', self.config.OS_ACTION_POINT_PRESERVE)
@@ -53,7 +53,7 @@ class OpsiMeowfficerFarming(OSMap):
                 keep_current_ap = True
                 check_rest_ap = True
                 if self.is_cl1_enabled and self.get_yellow_coins() >= self.config.cross_get(
-                        keys=['OpsiHazard1Leveling', 'YellowCoinsReturn']):
+                        keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn']):
                     check_rest_ap = False
                 if not self.is_cl1_enabled and self.config.OpsiGeneral_BuyActionPointLimit > 0:
                     keep_current_ap = False
