@@ -8979,6 +8979,17 @@
       "ForceRun": {
         "type": "checkbox",
         "value": false
+      },
+      "Fleet": {
+        "type": "select",
+        "value": 0,
+        "option": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
       }
     },
     "OpsiFleet": {
@@ -9046,6 +9057,17 @@
       "ForceRun": {
         "type": "checkbox",
         "value": false
+      },
+      "Fleet": {
+        "type": "select",
+        "value": 0,
+        "option": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
       }
     },
     "OpsiFleetFilter": {
@@ -9164,6 +9186,17 @@
       "ForceRun": {
         "type": "checkbox",
         "value": false
+      },
+      "Fleet": {
+        "type": "select",
+        "value": 0,
+        "option": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
       }
     },
     "OpsiFleetFilter": {

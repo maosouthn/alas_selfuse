@@ -43,6 +43,7 @@ class OpsiAbyssal(OSMap):
             STORY_OPTION=0
         )
         self.zone_init()
+        self.fleet_set(self.config.OpsiAbyssal_Fleet or self.config.OpsiFleet_Fleet)
         result = self.run_abyssal()
         if not result:
             raise RequestHumanTakeover
@@ -53,4 +54,8 @@ class OpsiAbyssal(OSMap):
     def os_abyssal(self):
         while True:
             self.clear_abyssal()
+            # If CL1 dispatched this to replenish yellow coins, yield back to CL1
+            # once the target is reached (round boundary, never mid-round).
+            if self.yellow_coins_replenish_finished():
+                self.finish_yellow_coins_replenish()
             self.config.check_task_switch()

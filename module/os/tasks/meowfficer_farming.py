@@ -11,9 +11,8 @@ class OpsiMeowfficerFarming(OSMap):
         Recommend 3 or 5 for higher meowfficer searching point per action points ratio.
         """
         logger.hr(f'OS meowfficer farming, hazard_level={self.config.OpsiMeowfficerFarming_HazardLevel}', level=1)
-        if self.is_cl1_enabled and self.config.OpsiMeowfficerFarming_ActionPointPreserve < 1000:
-            logger.info('With CL1 leveling enabled, set action point preserve to 1000')
-            self.config.OpsiMeowfficerFarming_ActionPointPreserve = 1000
+        # AP preserve comes straight from the GUI setting OpsiMeowfficerFarming_ActionPointPreserve;
+        # the user controls the shortcat AP limit directly instead of CL1 forcing it to 1000.
         preserve = min(self.get_action_point_limit(), self.config.OpsiMeowfficerFarming_ActionPointPreserve, 2000)
         if preserve == 0:
             self.config.override(OpsiFleet_Submarine=False)

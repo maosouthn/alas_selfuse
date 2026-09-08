@@ -28,6 +28,7 @@ class OpsiStronghold(OSMap):
 
         self.globe_enter(zone)
         self.zone_init()
+        self.fleet_set(self.config.OpsiStronghold_Fleet or self.config.OpsiFleet_Fleet)
         self.os_order_execute(recon_scan=True, submarine_call=False)
         self.run_stronghold()
 
@@ -37,6 +38,10 @@ class OpsiStronghold(OSMap):
     def os_stronghold(self):
         while True:
             self.clear_stronghold()
+            # If CL1 dispatched this to replenish yellow coins, yield back to CL1
+            # once the target is reached (round boundary, never mid-round).
+            if self.yellow_coins_replenish_finished():
+                self.finish_yellow_coins_replenish()
             self.config.check_task_switch()
 
     def run_stronghold_one_fleet(self, fleet):

@@ -30,7 +30,7 @@ class OpsiObscure(OSMap):
             STORY_OPTION=0,
         )
         self.zone_init()
-        self.fleet_set(self.config.OpsiFleet_Fleet)
+        self.fleet_set(self.config.OpsiObscure_Fleet or self.config.OpsiFleet_Fleet)
         self.os_order_execute(
             recon_scan=True,
             submarine_call=self.config.OpsiFleet_Submarine)
@@ -46,10 +46,11 @@ class OpsiObscure(OSMap):
                 self.config.check_task_switch()
                 continue
             elif self.is_cl1_enabled:
-                # CL1 is running and dispatched this task to replenish yellow coins.
-                # Clear one obscure zone, then yield back to CL1.
-                logger.info('CL1 enabled, yield to CL1 after clearing one obscure zone')
-                self.config.task_delay(minute=30)
-                self.config.task_stop()
+                # CL1 dispatched this to replenish yellow coins. Keep clearing
+                # obscure zones until the yellow coins target is reached, then
+                # yield back to CL1 at a round boundary (never mid-round).
+                if self.yellow_coins_replenish_finished():
+                    self.finish_yellow_coins_replenish()
             else:
                 break
+            self.config.check_task_switch()

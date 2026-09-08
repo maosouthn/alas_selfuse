@@ -744,10 +744,19 @@ OpsiDaily:
   UseTuningSample: true
 OpsiObscure:
   ForceRun: false
+  Fleet:
+    value: 0
+    option: [ 0, 1, 2, 3, 4 ]
 OpsiAbyssal:
   ForceRun: false
+  Fleet:
+    value: 0
+    option: [ 0, 1, 2, 3, 4 ]
 OpsiStronghold:
   ForceRun: false
+  Fleet:
+    value: 0
+    option: [ 0, 1, 2, 3, 4 ]
 OpsiMonthBoss:
   Mode:
     value: normal

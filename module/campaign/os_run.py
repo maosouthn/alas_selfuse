@@ -71,7 +71,8 @@ class OSCampaignRun(OSMapOperation):
         except ActionPointLimit:
             self.config.opsi_task_delay(ap_limit=True)
             if self.config.is_task_enabled('OpsiHazard1Leveling') \
-                    and self.get_yellow_coins() > self.config.OS_CL1_YELLOW_COINS_PRESERVE:
+                    and self.get_yellow_coins() >= self.config.cross_get(
+                        keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn']):
                 self.config.task_call('OpsiHazard1Leveling')           
 
     def opsi_month_boss(self):
@@ -94,7 +95,8 @@ class OSCampaignRun(OSMapOperation):
         except ActionPointLimit:
             self.config.opsi_task_delay(ap_limit=True)
             if self.config.is_task_enabled('OpsiHazard1Leveling') \
-                    and self.get_yellow_coins() > self.config.OS_CL1_YELLOW_COINS_PRESERVE:
+                    and self.get_yellow_coins() >= self.config.cross_get(
+                        keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn']):
                 self.config.task_call('OpsiHazard1Leveling')
 
     def opsi_archive(self):
@@ -111,7 +113,8 @@ class OSCampaignRun(OSMapOperation):
         except ActionPointLimit:
             self.config.opsi_task_delay(ap_limit=True)
             if self.config.is_task_enabled('OpsiHazard1Leveling') \
-                    and self.get_yellow_coins() > self.config.OS_CL1_YELLOW_COINS_PRESERVE:
+                    and self.get_yellow_coins() >= self.config.cross_get(
+                        keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn']):
                 self.config.task_call('OpsiHazard1Leveling')
 
     def opsi_cross_month(self):

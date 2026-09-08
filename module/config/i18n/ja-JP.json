@@ -2580,6 +2580,15 @@
     "ForceRun": {
       "name": "OpsiObscure.ForceRun.name",
       "help": "OpsiObscure.ForceRun.help"
+    },
+    "Fleet": {
+      "name": "OpsiObscure.Fleet.name",
+      "help": "OpsiObscure.Fleet.help",
+      "0": "0",
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4"
     }
   },
   "OpsiAbyssal": {
@@ -2590,6 +2599,15 @@
     "ForceRun": {
       "name": "OpsiAbyssal.ForceRun.name",
       "help": "OpsiAbyssal.ForceRun.help"
+    },
+    "Fleet": {
+      "name": "OpsiAbyssal.Fleet.name",
+      "help": "OpsiAbyssal.Fleet.help",
+      "0": "0",
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4"
     }
   },
   "OpsiStronghold": {
@@ -2600,6 +2618,15 @@
     "ForceRun": {
       "name": "OpsiStronghold.ForceRun.name",
       "help": "OpsiStronghold.ForceRun.help"
+    },
+    "Fleet": {
+      "name": "OpsiStronghold.Fleet.name",
+      "help": "OpsiStronghold.Fleet.help",
+      "0": "0",
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4"
     }
   },
   "OpsiMonthBoss": {

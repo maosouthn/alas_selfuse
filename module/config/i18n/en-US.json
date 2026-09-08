@@ -2580,6 +2580,15 @@
     "ForceRun": {
       "name": "Force Run",
       "help": "Ignore interval, clear all obscure zones, and use AP to submit scan orders (and submarine if enabled)\nGenerally not needed to force run, just run in intervals unless in a rush"
+    },
+    "Fleet": {
+      "name": "Sortie Fleet",
+      "help": "Fleet to enter the sea. 0 follows the shared OpsiFleet>Fleet setting",
+      "0": "Follow OpsiFleet",
+      "1": "Fleet 1",
+      "2": "Fleet 2",
+      "3": "Fleet 3",
+      "4": "Fleet 4"
     }
   },
   "OpsiAbyssal": {
@@ -2590,6 +2599,15 @@
     "ForceRun": {
       "name": "Force Run",
       "help": "Ignore interval, clear all abyssal zones, and use AP to submit scan orders (and submarine if enabled)\nGenerally not needed to force run, just run in intervals unless in a rush"
+    },
+    "Fleet": {
+      "name": "Sortie Fleet",
+      "help": "Fleet to enter the sea. 0 follows the shared OpsiFleet>Fleet setting",
+      "0": "Follow OpsiFleet",
+      "1": "Fleet 1",
+      "2": "Fleet 2",
+      "3": "Fleet 3",
+      "4": "Fleet 4"
     }
   },
   "OpsiStronghold": {
@@ -2600,6 +2618,15 @@
     "ForceRun": {
       "name": "Force Run",
       "help": "Ignore interval, clear all siren strongholds, and use AP to submit scan orders (and submarine if enabled)\nGenerally not needed to force run, just run in intervals unless in a rush"
+    },
+    "Fleet": {
+      "name": "Sortie Fleet",
+      "help": "Fleet to enter the sea. 0 follows the shared OpsiFleet>Fleet setting",
+      "0": "Follow OpsiFleet",
+      "1": "Fleet 1",
+      "2": "Fleet 2",
+      "3": "Fleet 3",
+      "4": "Fleet 4"
     }
   },
   "OpsiMonthBoss": {

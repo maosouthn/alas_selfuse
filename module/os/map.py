@@ -441,6 +441,30 @@ class OSMap(OSFleet, Map, GlobeCamera, StrategicSearchHandler):
                 self.config.opsi_task_delay(cl1_preserve=True)
                 self.config.task_stop()
 
+    def yellow_coins_replenish_finished(self):
+        """
+        Returns:
+            bool: True if CL1 is enabled and yellow coins already reached the GUI
+                target YellowCoinsReturn, so a replenish task should yield back.
+        """
+        if not self.is_cl1_enabled:
+            return False
+        return self.get_yellow_coins() >= self.config.cross_get(
+            keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn'])
+
+    def finish_yellow_coins_replenish(self):
+        """
+        Yield back to CL1 after a replenish round reached the yellow coins target.
+        Delay self 30 minutes and disable self, so the scheduler picks CL1 (lower
+        priority) instead of re-running this replenish task as a normal task.
+        """
+        logger.info('Yellow coins replenished, yield back to CL1')
+        with self.config.multi_set():
+            self.config.task_delay(minute=30)
+            self.config.cross_set(
+                keys=f'{self.config.task.command}.Scheduler.Enable', value=False)
+        self.config.task_stop()
+
     _auto_search_battle_count = 0
     _auto_search_round_timer = 0
 

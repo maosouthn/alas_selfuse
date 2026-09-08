@@ -429,12 +429,15 @@ class GeneratedConfig:
 
     # Group `OpsiObscure`
     OpsiObscure_ForceRun = False
+    OpsiObscure_Fleet = 0  # 0, 1, 2, 3, 4
 
     # Group `OpsiAbyssal`
     OpsiAbyssal_ForceRun = False
+    OpsiAbyssal_Fleet = 0  # 0, 1, 2, 3, 4
 
     # Group `OpsiStronghold`
     OpsiStronghold_ForceRun = False
+    OpsiStronghold_Fleet = 0  # 0, 1, 2, 3, 4
 
     # Group `OpsiMonthBoss`
     OpsiMonthBoss_Mode = 'normal'  # normal, normal_hard
