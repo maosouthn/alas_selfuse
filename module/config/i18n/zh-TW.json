@@ -3134,7 +3134,13 @@
       "Running": "執行中",
       "Pending": "佇列中",
       "Waiting": "等待中",
-      "NoTask": "無任務"
+      "NoTask": "無任務",
+      "Resource": "資源",
+      "ActionPoint": "行動力",
+      "YellowCoin": "黃幣",
+      "CoinPreserve": "保留線",
+      "UpdatedAt": "更新於",
+      "NoData": "尚未讀取到資料，進入大世界後自動記錄"
     },
     "AddAlas": {
       "PopupTitle": "添加新的設定",

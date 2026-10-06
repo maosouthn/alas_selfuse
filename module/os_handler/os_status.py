@@ -9,6 +9,7 @@ from module.config.utils import get_server_next_update
 from module.logger import logger
 from module.map.map_grids import SelectedGrids
 from module.ocr.ocr import Digit
+from module.os.resource_watch import record_yellow_coins
 from module.os_shop.assets import OS_SHOP_CHECK, OS_SHOP_PURPLE_COINS, SHOP_PURPLE_COINS, SHOP_YELLOW_COINS
 from module.ui.ui import UI
 
@@ -92,6 +93,9 @@ class OSStatus(UI):
             else:
                 break
 
+        # Dashboard: keep the last reading for the WebUI overview page. The
+        # timeout branch may return an unusable number, the recorder drops it.
+        record_yellow_coins(self.config, yellow_coins)
         return yellow_coins
 
     def get_purple_coins(self) -> int:

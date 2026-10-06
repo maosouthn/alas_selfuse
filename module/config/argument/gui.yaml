@@ -51,6 +51,12 @@ Overview:
   Pending:
   Waiting:
   NoTask:
+  Resource:
+  ActionPoint:
+  YellowCoin:
+  CoinPreserve:
+  UpdatedAt:
+  NoData:
 
 AddAlas:
   PopupTitle:

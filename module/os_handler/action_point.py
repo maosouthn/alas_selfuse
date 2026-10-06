@@ -7,6 +7,7 @@ from module.base.utils import *
 from module.config.utils import get_server_next_update
 from module.logger import logger
 from module.ocr.ocr import Digit, DigitCounter
+from module.os.resource_watch import record_action_point
 from module.os_handler.assets import *
 from module.os_handler.map_event import MapEventHandler
 from module.statistics.item import Item, ItemGrid
@@ -141,6 +142,8 @@ class ActionPointHandler(UI, MapEventHandler):
         self._action_point_current = current
         self._action_point_box = box
         self._action_point_total = total
+        # Dashboard: keep the last reading for the WebUI overview page.
+        record_action_point(self.config, current, total)
 
     def action_point_safe_get(self):
         timeout = Timer(3, count=6).start()

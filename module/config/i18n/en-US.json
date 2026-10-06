@@ -3134,7 +3134,13 @@
       "Running": "Running",
       "Pending": "Pending",
       "Waiting": "Waiting",
-      "NoTask": "No Task"
+      "NoTask": "No Task",
+      "Resource": "Resource",
+      "ActionPoint": "Action Points",
+      "YellowCoin": "Yellow Coins",
+      "CoinPreserve": "Preserve",
+      "UpdatedAt": "Updated",
+      "NoData": "No data yet, recorded once Operation Siren runs"
     },
     "AddAlas": {
       "PopupTitle": "Add new config",

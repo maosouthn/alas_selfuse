@@ -57,6 +57,7 @@ from module.ocr.rpc import start_ocr_server_process, stop_ocr_server_process
 from module.submodule.submodule import load_config
 from module.submodule.utils import get_config_mod
 from module.webui.base import Frame
+from module.webui.dashboard import put_resource_dashboard
 from module.webui.discord_presence import close_discord_rpc, init_discord_rpc
 from module.webui.fastapi import asgi_app
 from module.webui.lang import _t, t
@@ -416,6 +417,7 @@ class AlasGUI(Frame):
         put_scope("overview", [put_scope("schedulers"), put_scope("logs")])
 
         with use_scope("schedulers"):
+            put_scope("resource")
             put_scope(
                 "scheduler-bar",
                 [
@@ -636,6 +638,8 @@ class AlasGUI(Frame):
                     put_task(task)
             else:
                 put_text(t("Gui.Overview.NoTask")).style("--overview-notask-text--")
+
+        put_resource_dashboard(self.alas_config)
 
     @use_scope("content", clear=True)
     def alas_daemon_overview(self, task: str) -> None:
