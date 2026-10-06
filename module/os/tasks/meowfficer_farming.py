@@ -75,6 +75,10 @@ class OpsiMeowfficerFarming(OSMap):
                         submarine_call=self.config.OpsiFleet_Submarine)
                     self.run_auto_search()
                     self.handle_after_auto_search()
+                    # If CL1 dispatched this to replenish yellow coins, yield back to CL1
+                    # once the target is reached (round boundary, never mid-round).
+                    if self.yellow_coins_replenish_finished():
+                        self.finish_yellow_coins_replenish()
                     self.config.check_task_switch()
             else:
                 zones = self.zone_select(hazard_level=self.config.OpsiMeowfficerFarming_HazardLevel) \
@@ -90,4 +94,8 @@ class OpsiMeowfficerFarming(OSMap):
                     submarine_call=self.config.OpsiFleet_Submarine)
                 self.run_auto_search()
                 self.handle_after_auto_search()
+                # If CL1 dispatched this to replenish yellow coins, yield back to CL1
+                # once the target is reached (round boundary, never mid-round).
+                if self.yellow_coins_replenish_finished():
+                    self.finish_yellow_coins_replenish()
                 self.config.check_task_switch()
