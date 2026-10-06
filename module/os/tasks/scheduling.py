@@ -23,9 +23,10 @@ from datetime import datetime, timedelta
 
 from module.config.config import TaskEnd
 from module.config.utils import get_os_reset_remain
+from module.exception import RequestHumanTakeover, ScriptError
 from module.logger import logger
+from module.map.map_grids import SelectedGrids
 from module.os.map import OSMap
-from module.os.tasks.hazard_leveling import OpsiHazard1Leveling
 from module.os.tasks.task_context import opsi_task_context
 from module.os_handler.action_point import ActionPointLimit
 
@@ -70,6 +71,9 @@ class OpsiScheduling(OSMap):
     FALLBACK_COIN_TASK_AP_PRESERVE = 0
     FALLBACK_NO_CONTENT_SKIP_HOURS = 6
     DEFAULT_TASK_PRIORITY = 'OpsiStronghold > OpsiObscure > OpsiAbyssal > OpsiMeowfficerFarming'
+    # Action point cost of one leveling round, matches the preset used by
+    # OpsiHazard1Leveling.os_hazard1_leveling.
+    CL1_ACTION_POINT_COST = 70
 
     # Storage keys
     STATE_KEY_COIN_REPLENISH = 'CoinReplenish'
@@ -467,7 +471,7 @@ class OpsiScheduling(OSMap):
             return None
 
         same_box_use = self._scheduling_ap_box_use == self.config.OS_ACTION_POINT_BOX_USE
-        if same_box_use and self.action_point_reusable(fresh_ap, cost, avoid_ap_overflow):
+        if same_box_use and self.action_point_reusable(fresh_ap, cost):
             self.action_point_quit()
             return fresh_ap
 
@@ -527,7 +531,7 @@ class OpsiScheduling(OSMap):
             with opsi_task_context(self.config, task_name):
                 try:
                     if task_name == self.TASK_NAME_MEOWFFICER_FARMING:
-                        self.run_meowfficer_farming_once(fresh_ap=fresh_ap)
+                        self._run_meowfficer_once(fresh_ap=fresh_ap)
                     elif task_name == self.TASK_NAME_OBSCURE:
                         self.clear_obscure()
                     elif task_name == self.TASK_NAME_ABYSSAL:
@@ -562,19 +566,149 @@ class OpsiScheduling(OSMap):
         """
         Run one round of hazard 1 leveling under its own task identity.
 
+        This repeats one round of OpsiHazard1Leveling.os_hazard1_leveling while
+        the scheduler owns the loop: same action point preset, zone navigation,
+        strategic search and after battle handling. Only the two handovers of
+        that task are left out, the yellow coins replenish decision and the last
+        day action point burn, because the scheduler makes both itself.
+
         Args:
             ap_reserve (int): Action points kept for hazard 1 leveling.
             total_ap (int): Total action points read for the decision.
             current_ap (int): Current action points read for the decision.
         """
         logger.hr('OS scheduling: hazard 1 leveling', level=1)
-        fresh_ap = self._prepare_action_point(
-            (total_ap, current_ap), cost=OpsiHazard1Leveling.ACTION_POINT_COST,
-            avoid_ap_overflow=True,
+        # Without these enabled, CL1 gains 0 profits
+        self.config.override(
+            OpsiGeneral_DoRandomMapEvent=True,
+            OpsiGeneral_AkashiShopFilter='ActionPoint',
         )
         with self.config.temporary(OS_ACTION_POINT_PRESERVE=int(ap_reserve)):
             with opsi_task_context(self.config, self.TASK_NAME_HAZARD1_LEVELING):
-                self.run_hazard1_leveling_once(fresh_ap=fresh_ap)
+                if self.config.is_task_enabled('OpsiAshBeacon') \
+                        and not self._ash_fully_collected \
+                        and self.config.cross_get("OpsiAshBeacon.OpsiAshBeacon.EnsureFullyCollected", True):
+                    logger.info('Ash beacon not fully collected, ignore action point limit temporarily')
+                    self.config.OS_ACTION_POINT_PRESERVE = 0
+                logger.attr('OS_ACTION_POINT_PRESERVE', self.config.OS_ACTION_POINT_PRESERVE)
+
+                # Use the action point popup kept open for the decision, if any.
+                fresh_ap = self._prepare_action_point(
+                    (total_ap, current_ap), cost=self.CL1_ACTION_POINT_COST,
+                    avoid_ap_overflow=True,
+                )
+
+                self.get_current_zone()
+
+                # Preset action point to 70
+                # When running CL1 oil is for running CL1, not meowfficer farming
+                keep_current_ap = True
+                if self.config.OpsiGeneral_BuyActionPointLimit > 0:
+                    keep_current_ap = False
+                if self.action_point_reusable(fresh_ap, cost=self.CL1_ACTION_POINT_COST):
+                    logger.info('[OS scheduling] Reuse the action points just read, '
+                                'skip the action point popup')
+                else:
+                    self.action_point_set(
+                        cost=self.CL1_ACTION_POINT_COST, keep_current_ap=keep_current_ap,
+                        check_rest_ap=True, avoid_ap_overflow=True,
+                    )
+
+                if self.config.OpsiHazard1Leveling_TargetZone != 0:
+                    zone = self.config.OpsiHazard1Leveling_TargetZone
+                else:
+                    zone = 22
+                logger.hr(f'OS hazard 1 leveling, zone_id={zone}', level=1)
+                if self.zone.zone_id != zone or not self.is_zone_name_hidden:
+                    self.globe_goto(self.name_to_zone(zone), types='SAFE', refresh=True)
+                self.fleet_set(self.config.OpsiFleet_Fleet)
+                self.run_strategic_search()
+                self.handle_after_auto_search()
+
+    def _run_meowfficer_once(self, fresh_ap=None):
+        """
+        Run one round of meowfficer farming: clear one zone.
+
+        This repeats one iteration of OpsiMeowfficerFarming.os_meowfficer_farming
+        while the scheduler owns the loop. The cooldown and exploration preflight
+        of that task is a task switching concern and is left out, the scheduler
+        checks the monthly exploration itself.
+
+        Args:
+            fresh_ap (tuple[int, int] | None): (total AP, current AP) read just
+                before this call, skips the action point popup when already enough.
+
+        Raises:
+            ActionPointLimit: If there are not enough action points.
+            RequestHumanTakeover: If the configured target zone is not a valid zone.
+        """
+        # AP preserve comes straight from the GUI setting OpsiMeowfficerFarming_ActionPointPreserve;
+        # the user controls the shortcat AP limit directly instead of CL1 forcing it to 1000.
+        preserve = min(self.get_action_point_limit(),
+                       self.config.OpsiMeowfficerFarming_ActionPointPreserve, 2000)
+        if preserve == 0:
+            self.config.override(OpsiFleet_Submarine=False)
+        if self.is_cl1_enabled:
+            # Without these enabled, CL1 gains 0 profits
+            self.config.override(
+                OpsiGeneral_DoRandomMapEvent=True,
+                OpsiGeneral_AkashiShopFilter='ActionPoint',
+                OpsiFleet_Submarine=False,
+            )
+        self.config.OS_ACTION_POINT_PRESERVE = preserve
+        if self.config.is_task_enabled('OpsiAshBeacon') \
+                and not self._ash_fully_collected \
+                and self.config.cross_get("OpsiAshBeacon.OpsiAshBeacon.EnsureFullyCollected", True):
+            logger.info('Ash beacon not fully collected, ignore action point limit temporarily')
+            self.config.OS_ACTION_POINT_PRESERVE = 0
+        logger.attr('OS_ACTION_POINT_PRESERVE', self.config.OS_ACTION_POINT_PRESERVE)
+
+        # Check action points first to avoid using remaining AP when it not enough for tomorrow's daily
+        # When not running CL1 and use oil
+        keep_current_ap = True
+        check_rest_ap = True
+        if self.is_cl1_enabled and self.get_yellow_coins() >= self.config.cross_get(
+                keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn']):
+            check_rest_ap = False
+        if not self.is_cl1_enabled and self.config.OpsiGeneral_BuyActionPointLimit > 0:
+            keep_current_ap = False
+        if self.action_point_reusable(fresh_ap, cost=0):
+            logger.info('[OS scheduling] Reuse the action points just read, '
+                        'skip the action point popup')
+        else:
+            self.action_point_set(cost=0, keep_current_ap=keep_current_ap,
+                                  check_rest_ap=check_rest_ap)
+
+        # (1252, 1012) is the coordinate of zone 134 (the center zone) in os_globe_map.png
+        if self.config.OpsiMeowfficerFarming_TargetZone != 0:
+            try:
+                zone = self.name_to_zone(self.config.OpsiMeowfficerFarming_TargetZone)
+            except ScriptError:
+                logger.warning(f'wrong zone_id input:{self.config.OpsiMeowfficerFarming_TargetZone}')
+                raise RequestHumanTakeover('wrong input, task stopped')
+            else:
+                logger.hr(f'OS meowfficer farming, zone_id={zone.zone_id}', level=1)
+                self.globe_goto(zone, refresh=True)
+                self.fleet_set(self.config.OpsiFleet_Fleet)
+                self.os_order_execute(
+                    recon_scan=False,
+                    submarine_call=self.config.OpsiFleet_Submarine)
+                self.run_auto_search()
+                self.handle_after_auto_search()
+        else:
+            zones = self.zone_select(hazard_level=self.config.OpsiMeowfficerFarming_HazardLevel) \
+                .delete(SelectedGrids([self.zone])) \
+                .delete(SelectedGrids(self.zones.select(is_port=True))) \
+                .sort_by_clock_degree(center=(1252, 1012), start=self.zone.location)
+
+            logger.hr(f'OS meowfficer farming, zone_id={zones[0].zone_id}', level=1)
+            self.globe_goto(zones[0])
+            self.fleet_set(self.config.OpsiFleet_Fleet)
+            self.os_order_execute(
+                recon_scan=False,
+                submarine_call=self.config.OpsiFleet_Submarine)
+            self.run_auto_search()
+            self.handle_after_auto_search()
 
     # ==================== Decision ====================
 

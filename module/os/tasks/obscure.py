@@ -1,7 +1,6 @@
 from module.config.utils import get_os_reset_remain
 from module.logger import logger
 from module.os.map import OSMap
-from module.os.tasks.task_context import is_proxied
 
 
 class OpsiObscure(OSMap):
@@ -17,11 +16,6 @@ class OpsiObscure(OSMap):
 
         result = self.storage_get_next_item('OBSCURE', use_logger=self.config.OpsiGeneral_UseLogger)
         if not result:
-            if is_proxied(self.config):
-                # The scheduler proxies this task, report "no content" so it moves
-                # on to another replenish source instead of stopping itself.
-                self._coin_task_no_content = self.config.task.command
-                return False
             # No obscure coordinates, delay next run to tomorrow.
             if get_os_reset_remain() > 0:
                 self.config.task_delay(server_update=True)

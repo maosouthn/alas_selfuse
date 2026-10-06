@@ -91,9 +91,6 @@ ACTION_POINT_BOX = {
     2: 50,
     3: 100,
 }
-# In avoid_ap_overflow mode, reaching this current AP opens the battle right
-# away instead of using an action point box and overflowing the 200 AP cap.
-ACTION_POINT_AVOID_OVERFLOW_START = 100
 
 
 class ActionPointLimit(Exception):
@@ -343,11 +340,9 @@ class ActionPointHandler(UI, MapEventHandler):
                 when it is not enough for tomorrow's daily.
             check_rest_ap (bool): Skip keep_current_ap if the sum of current action points and rest action points
                 that can be obtained today exceeds 200.
-            avoid_ap_overflow (bool): Avoid overflowing the 200 AP cap, used by hazard 1
-                leveling. Uses the smallest useful box first, so the big boxes stay for the
-                following rounds and the AP keeps regenerating below the cap. Reaching
-                ACTION_POINT_AVOID_OVERFLOW_START also opens the battle right away when the
-                cost would otherwise ask for another box.
+            avoid_ap_overflow (bool): Spend the smallest useful action point box first,
+                so the big boxes stay available for the following rounds and the AP
+                keeps regenerating below the 200 cap. Used by hazard 1 leveling.
             skip_first_read (bool): Reuse the AP already read on this popup instead of
                 reading it again. Only safe when the caller just read the same popup and
                 nothing consumed AP in between.
@@ -395,15 +390,6 @@ class ActionPointHandler(UI, MapEventHandler):
                 self.action_point_quit()
                 return True
 
-            # Avoid overflowing the 200 AP cap: once the current AP reached the
-            # start line, open the battle right away without using a box. The
-            # 100..119 range does not wait for the natural regeneration either.
-            if avoid_ap_overflow and self._action_point_current >= ACTION_POINT_AVOID_OVERFLOW_START:
-                logger.info(f'Current AP reached {ACTION_POINT_AVOID_OVERFLOW_START}, '
-                            'start without using an action point box')
-                self.action_point_quit()
-                return True
-
             # Buy action points
             if self.config.OpsiGeneral_BuyActionPointLimit > 0 and not buy_checked:
                 if self.action_point_buy(preserve=self.config.OpsiGeneral_OilLimit):
@@ -421,16 +407,10 @@ class ActionPointHandler(UI, MapEventHandler):
 
             # Sort action point boxes
             box = []
-            overflow_skipped = False
-            # Avoid overflowing uses the smallest box first, so the big boxes
+            # Avoid overflowing spends the smallest box first, so the big boxes
             # stay available for the following rounds.
             for index in ([3, 2, 1] if avoid_ap_overflow else [1, 2, 3]):
                 if self._action_point_box[index] > 0:
-                    # Avoid overflowing: a box which would reach the 200 cap is
-                    # skipped, the AP regenerates naturally instead.
-                    if avoid_ap_overflow and self._action_point_current + ACTION_POINT_BOX[index] >= 200:
-                        overflow_skipped = True
-                        continue
                     if self._action_point_current + ACTION_POINT_BOX[index] >= 200:
                         box.append(index)
                     else:
@@ -446,11 +426,6 @@ class ActionPointHandler(UI, MapEventHandler):
                     logger.info(f'Reach the limit of action points, preserve={self.config.OS_ACTION_POINT_PRESERVE}')
                     self.action_point_quit()
                     raise ActionPointLimit
-            elif overflow_skipped:
-                logger.info('Using a box would reach the 200 cap, '
-                            'wait for the natural regeneration instead')
-                self.action_point_quit()
-                raise ActionPointLimit
             else:
                 logger.info('No more action point boxes')
                 self.action_point_quit()
@@ -479,22 +454,21 @@ class ActionPointHandler(UI, MapEventHandler):
             if self.appear_then_click(AUTO_SEARCH_REWARD, offset=(50, 50)):
                 continue
 
-    def action_point_reusable(self, fresh_ap, cost, avoid_ap_overflow=False):
+    def action_point_reusable(self, fresh_ap, cost):
         """
         Check if a freshly read AP reading can replace opening the AP popup.
 
         True only when reusing the reading behaves exactly like going through
         handle_action_point: the popup total AP is above OS_ACTION_POINT_PRESERVE
         so the preserve interception cannot trigger, and the current AP already
-        reached the start line, so the popup path would only log 'Having enough
-        action points' and close. Otherwise action_point_set still has to run,
-        opening boxes and buying AP happen there.
+        reached the cost, so the popup path would only log 'Having enough action
+        points' and close. Otherwise action_point_set still has to run, opening
+        boxes and buying AP happen there.
 
         Args:
             fresh_ap (tuple[int, int] | None): (total AP, current AP) read earlier.
                 Must be None when anything consumed AP in between.
             cost (int): Action point cost of the target, same as action_point_set.
-            avoid_ap_overflow (bool): Whether action_point_set runs in the same mode.
 
         Returns:
             bool: If the popup can be skipped.
@@ -504,8 +478,6 @@ class ActionPointHandler(UI, MapEventHandler):
         fresh_total, fresh_current = fresh_ap
         if fresh_total <= self.config.OS_ACTION_POINT_PRESERVE:
             return False
-        if avoid_ap_overflow:
-            return fresh_current >= ACTION_POINT_AVOID_OVERFLOW_START
         return fresh_current >= cost
 
     def action_point_set(self, zone=None, pinned=None, cost=None, keep_current_ap=True, check_rest_ap=False,

@@ -12,7 +12,6 @@ from module.os.assets import FLEET_EMP_DEBUFF, MAP_GOTO_GLOBE_FOG
 from module.os.fleet import OSFleet
 from module.os.globe_camera import GlobeCamera
 from module.os.globe_operation import RewardUncollectedError
-from module.os.tasks.task_context import is_proxied
 from module.os_handler.assets import AUTO_SEARCH_OS_MAP_OPTION_OFF, AUTO_SEARCH_OS_MAP_OPTION_OFF_DISABLED, \
     AUTO_SEARCH_OS_MAP_OPTION_ON, AUTO_SEARCH_REWARD
 from module.os_handler.strategic import StrategicSearchHandler
@@ -434,11 +433,6 @@ class OSMap(OSFleet, Map, GlobeCamera, StrategicSearchHandler):
         """
         Keeping enough startup AP to run CL1.
         """
-        if is_proxied(self.config):
-            # The scheduler manages the action points of the sub tasks it proxies.
-            # A sub task must not delay the replenish tasks behind its back, that
-            # is what used to make them bounce instead of replenishing.
-            return
         if self.is_cl1_enabled and get_os_reset_remain() > 2 \
                 and self.get_yellow_coins() >= self.config.cross_get(
                     keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn']):

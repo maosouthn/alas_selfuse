@@ -323,9 +323,8 @@ def test_action_point_reusable():
     handler, _, _ = make_action_point_handler(120, 200, [0, 0, 0, 0])
     assert handler.action_point_reusable(None, cost=70) is False
     assert handler.action_point_reusable((200, 120), cost=70) is True
-    assert handler.action_point_reusable((200, 60), cost=70) is False
-    # Avoid overflowing mode starts at ACTION_POINT_AVOID_OVERFLOW_START.
-    assert handler.action_point_reusable((200, 100), cost=70, avoid_ap_overflow=True) is True
+    assert handler.action_point_reusable((200, 70), cost=70) is True
+    assert handler.action_point_reusable((200, 69), cost=70) is False
 
 
 def test_action_point_reusable_respects_preserve():

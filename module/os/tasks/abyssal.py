@@ -2,7 +2,6 @@ from module.config.utils import get_os_reset_remain
 from module.exception import RequestHumanTakeover
 from module.logger import logger
 from module.os.map import OSMap
-from module.os.tasks.task_context import is_proxied
 
 
 class OpsiAbyssal(OSMap):
@@ -11,10 +10,6 @@ class OpsiAbyssal(OSMap):
         Args:
             result(bool): If still have obscure coordinates.
         """
-        if is_proxied(self.config):
-            # The scheduler owns the loop and the delay of the proxied sub tasks,
-            # never delay or stop them from here.
-            return
         if get_os_reset_remain() == 0:
             logger.info('Just less than 1 day to OpSi reset, delay 2.5 hours')
             self.config.task_delay(minute=150, server_update=True)
@@ -40,11 +35,6 @@ class OpsiAbyssal(OSMap):
         with self.config.temporary(STORY_ALLOW_SKIP=False):
             result = self.storage_get_next_item('ABYSSAL', use_logger=self.config.OpsiGeneral_UseLogger)
         if not result:
-            if is_proxied(self.config):
-                # The scheduler proxies this task, report "no content" so it moves
-                # on to another replenish source instead of stopping itself.
-                self._coin_task_no_content = self.config.task.command
-                return False
             self.delay_abyssal(result=False)
 
         self.config.override(
