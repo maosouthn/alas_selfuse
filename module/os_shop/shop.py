@@ -276,10 +276,22 @@ class OSShop(PortShop, AkashiShop):
     @cached_property
     def yellow_coins_preserve(self):
         if self.is_cl1_enabled:
-            return self.config.cross_get(
-                keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsPreserve'])
+            # When OpsiScheduling drives the loop, its own preserve is the single
+            # source of truth for both the shop and the replenish decision. A zero
+            # there means "follow the hazard 1 leveling setting".
+            preserve = self.config.cross_get(
+                keys='OpsiScheduling.OpsiScheduling.OperationCoinsPreserve', default=None)
+            try:
+                preserve = int(preserve)
+            except (TypeError, ValueError):
+                preserve = 0
+            if preserve <= 0:
+                preserve = self.config.cross_get(
+                    keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsPreserve'])
+            return preserve
         else:
             return 35000
+
     def get_currency_coins(self, item):
         if item.cost == 'YellowCoins':
             if get_os_reset_remain() == 0:

@@ -455,6 +455,18 @@ class GeneratedConfig:
     OpsiHazard1Leveling_YellowCoinsReturn = 60000
     OpsiHazard1Leveling_LastDayActionPointThreshold = 10000
 
+    # Group `OpsiScheduling`
+    OpsiScheduling_OperationCoinsPreserve = 0
+    OpsiScheduling_OperationCoinsReturnThreshold = 0
+    OpsiScheduling_Cl1ActionPointReserve = 200
+    OpsiScheduling_ActionPointPreserve = 0
+    OpsiScheduling_EnableMeowfficerFarming = True
+    OpsiScheduling_EnableObscure = False
+    OpsiScheduling_EnableAbyssal = False
+    OpsiScheduling_EnableStronghold = False
+    OpsiScheduling_TaskPriority = 'OpsiStronghold > OpsiObscure > OpsiAbyssal > OpsiMeowfficerFarming'
+    OpsiScheduling_NoContentSkipHours = 6
+
     # Group `IslandProduction`
     IslandProduction_HardFloorItems = '{}'
     IslandProduction_DailyBufferItems = '{}'

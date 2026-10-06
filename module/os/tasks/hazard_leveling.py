@@ -11,8 +11,17 @@ class OpsiHazard1Leveling(OSMap):
     # is the fallback when no limited task can be run. Replenish until yellow coins reach
     # the GUI target YellowCoinsReturn, and the task stops CL1 rather than keep running it
     # with insufficient coins.
+    #
+    # This chain is the standalone behaviour of the task. When OpsiScheduling is enabled it
+    # owns the loop and runs one leveling round at a time through
+    # run_hazard1_leveling_once(replenish=False), so the chain is skipped there.
     LIMITED_REPLENISH_TASKS = ['OpsiStronghold', 'OpsiObscure', 'OpsiAbyssal']
     FALLBACK_REPLENISH_TASK = 'OpsiMeowfficerFarming'
+    # Action point cost of one leveling round, used by the popup reuse check.
+    ACTION_POINT_COST = 70
+    # Action points kept for leveling when the scheduler config is missing.
+    DEFAULT_ACTION_POINT_RESERVE = 200
+    CONFIG_PATH_AP_RESERVE = 'OpsiScheduling.OpsiScheduling.Cl1ActionPointReserve'
 
     def _next_run(self, task):
         """
@@ -98,105 +107,159 @@ class OpsiHazard1Leveling(OSMap):
                 logger.info(f'Restore replenish task {task} to disabled')
                 self.config.cross_set(keys=f'{task}.Scheduler.Enable', value=False)
 
-    def os_hazard1_leveling(self):
-        logger.hr('OS hazard 1 leveling', level=1)
+    def _get_action_point_reserve(self):
+        """
+        Returns:
+            int: Action points kept for leveling. Taken from the scheduler config,
+                falling back to the historical hard coded value.
+        """
+        value = self.config.cross_get(keys=self.CONFIG_PATH_AP_RESERVE, default=None)
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            value = 0
+        return value if value > 0 else self.DEFAULT_ACTION_POINT_RESERVE
+
+    def _run_replenish_decision(self):
+        """
+        Standalone yellow coins replenish chain.
+
+        Replenish yellow coins until they reach the GUI target YellowCoinsReturn.
+        CL1 stops itself and hands over to the replenish task (limited tasks first,
+        shortcat as fallback). Below the trigger YellowCoinsPreserve with no source
+        that will be ready in the near future there is nothing to do but request
+        human takeover; if a source is only cooling down for roughly the next hour,
+        wait for it instead of bothering the user.
+        Do not replenish on the last day, yellow coins will be reset anyway.
+
+        Raises:
+            RequestHumanTakeover: If no replenish source is available at all.
+        """
+        remain = get_os_reset_remain()
+        yellow_coins_preserve = self.config.cross_get(
+            keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsPreserve'])
+        yellow_coins_return = self.config.cross_get(
+            keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn'])
+
+        yellow = self.get_yellow_coins()
+        if remain <= 0 or yellow >= yellow_coins_return:
+            return
+
+        replenish = self._pick_yellow_coins_replenish_task()
+        if replenish is not None:
+            logger.info(f'Yellow coins {yellow} below return target {yellow_coins_return}, '
+                        f'run {replenish} to replenish')
+            with self.config.multi_set():
+                self.config.task_call(replenish)
+            self.config.task_stop()
+        elif yellow < yellow_coins_preserve:
+            cooling, minutes = self._next_cooling_replenish_task()
+            if cooling is not None:
+                logger.info(
+                    f'Yellow coins {yellow} below preserve {yellow_coins_preserve}, '
+                    f'replenish source {cooling} cooling down (about {minutes} min), '
+                    f'wait CL1 and re-check')
+                self.config.task_delay(minute=30)
+                self.config.task_stop()
+            else:
+                logger.critical(
+                    'Yellow coins below preserve and no replenish task available '
+                    'in the near future, request human takeover')
+                raise RequestHumanTakeover
+        else:
+            logger.warning('Yellow coins below return target but no replenish task '
+                           'available, continue running CL1')
+
+    def _burn_action_points_on_last_day(self):
+        """
+        On the last day (less than 1 day to OpSi reset), if the total action points
+        exceed the threshold, stop CL1 and burn action points via meowfficer farming
+        instead. They would not be spent otherwise before the reset.
+        """
+        if get_os_reset_remain() != 0:
+            return
+        last_day_ap_threshold = self.config.cross_get(
+            keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'LastDayActionPointThreshold'])
+        if self._action_point_total <= last_day_ap_threshold:
+            return
+        if self.is_in_opsi_explore():
+            logger.info('OpsiExplore is running, skip meowfficer farming to burn action points')
+            return
+        logger.info(f'Last day to OpSi reset, total action points {self._action_point_total} '
+                    f'exceed threshold {last_day_ap_threshold}, '
+                    f'run meowfficer farming to burn action points')
+        with self.config.multi_set():
+            self.config.task_call('OpsiMeowfficerFarming')
+        self.config.task_stop()
+
+    def run_hazard1_leveling_once(self, ap_reserve=None, fresh_ap=None, replenish=True):
+        """
+        Run one round of hazard 1 leveling.
+
+        Args:
+            ap_reserve (int | None): Action points kept for leveling. Read from the
+                scheduler config when None.
+            fresh_ap (tuple[int, int] | None): (total AP, current AP) read just
+                before this call. Only pass it when nothing consumed action points
+                in between, it skips the action point popup when already enough.
+            replenish (bool): Run the standalone yellow coins replenish chain. The
+                scheduler passes False, it manages the coins itself.
+        """
         # Without these enabled, CL1 gains 0 profits
         self.config.override(
             OpsiGeneral_DoRandomMapEvent=True,
             OpsiGeneral_AkashiShopFilter='ActionPoint',
         )
-        # Local tweak: upstream auto-enables 'OpsiMeowfficerFarming' here,
-        # forcing shortcat on whenever CL1 runs. Keep the user's scheduler choice.
-        while True:
-            # Limited action point preserve of hazard 1 to 200
-            self.config.OS_ACTION_POINT_PRESERVE = 200
-            if self.config.is_task_enabled('OpsiAshBeacon') \
-                    and not self._ash_fully_collected \
-                    and self.config.cross_get("OpsiAshBeacon.OpsiAshBeacon.EnsureFullyCollected", True):
-                logger.info('Ash beacon not fully collected, ignore action point limit temporarily')
-                self.config.OS_ACTION_POINT_PRESERVE = 0
-            logger.attr('OS_ACTION_POINT_PRESERVE', self.config.OS_ACTION_POINT_PRESERVE)
 
+        if ap_reserve is None:
+            ap_reserve = self._get_action_point_reserve()
+        self.config.OS_ACTION_POINT_PRESERVE = int(ap_reserve)
+        if self.config.is_task_enabled('OpsiAshBeacon') \
+                and not self._ash_fully_collected \
+                and self.config.cross_get("OpsiAshBeacon.OpsiAshBeacon.EnsureFullyCollected", True):
+            logger.info('Ash beacon not fully collected, ignore action point limit temporarily')
+            self.config.OS_ACTION_POINT_PRESERVE = 0
+        logger.attr('OS_ACTION_POINT_PRESERVE', self.config.OS_ACTION_POINT_PRESERVE)
+
+        if replenish:
             # task_call() auto-enables the replenish tasks so the scheduler will run
             # them even though the user has them disabled in the GUI. Restore them to
             # disabled at the next CL1 round so they are never scheduled as ordinary
             # tasks (and recover cleanly if ALAS restarted mid-replenish).
             self._restore_replenish_tasks()
+            self._run_replenish_decision()
 
-            remain = get_os_reset_remain()
-            yellow_coins_preserve = self.config.cross_get(
-                keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsPreserve'])
-            yellow_coins_return = self.config.cross_get(
-                keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'YellowCoinsReturn'])
-            last_day_ap_threshold = self.config.cross_get(
-                keys=['OpsiHazard1Leveling', 'OpsiHazard1Leveling', 'LastDayActionPointThreshold'])
+        self.get_current_zone()
 
-            # Replenish yellow coins until they reach the GUI target YellowCoinsReturn.
-            # CL1 stops itself and hands over to the replenish task (limited tasks first,
-            # shortcat as fallback). Below the trigger YellowCoinsPreserve with no source
-            # that will be ready in the near future there is nothing to do but request
-            # human takeover; if a source is only cooling down for roughly the next hour,
-            # wait for it instead of bothering the user.
-            # Do not replenish on the last day, yellow coins will be reset anyway.
-            yellow = self.get_yellow_coins()
-            if remain > 0 and yellow < yellow_coins_return:
-                replenish = self._pick_yellow_coins_replenish_task()
-                if replenish is not None:
-                    logger.info(f'Yellow coins {yellow} below return target {yellow_coins_return}, '
-                                f'run {replenish} to replenish')
-                    with self.config.multi_set():
-                        self.config.task_call(replenish)
-                    self.config.task_stop()
-                elif yellow < yellow_coins_preserve:
-                    cooling, minutes = self._next_cooling_replenish_task()
-                    if cooling is not None:
-                        logger.info(
-                            f'Yellow coins {yellow} below preserve {yellow_coins_preserve}, '
-                            f'replenish source {cooling} cooling down (about {minutes} min), '
-                            f'wait CL1 and re-check')
-                        self.config.task_delay(minute=30)
-                        self.config.task_stop()
-                    else:
-                        logger.critical(
-                            'Yellow coins below preserve and no replenish task available '
-                            'in the near future, request human takeover')
-                        raise RequestHumanTakeover
-                else:
-                    logger.warning('Yellow coins below return target but no replenish task '
-                                   'available, continue running CL1')
+        # Preset action point
+        # When running CL1 oil is for running CL1, not meowfficer farming
+        keep_current_ap = True
+        if self.config.OpsiGeneral_BuyActionPointLimit > 0:
+            keep_current_ap = False
+        if self.action_point_reusable(fresh_ap, cost=self.ACTION_POINT_COST, avoid_ap_overflow=True):
+            logger.info('Reuse the action points just read, skip the action point popup')
+        else:
+            self.action_point_set(
+                cost=self.ACTION_POINT_COST, keep_current_ap=keep_current_ap,
+                check_rest_ap=True, avoid_ap_overflow=True,
+            )
 
-            self.get_current_zone()
+        if replenish:
+            self._burn_action_points_on_last_day()
 
-            # Preset action point to 70
-            # When running CL1 oil is for running CL1, not meowfficer farming
-            keep_current_ap = True
-            if self.config.OpsiGeneral_BuyActionPointLimit > 0:
-                keep_current_ap = False
-            self.action_point_set(cost=70, keep_current_ap=keep_current_ap, check_rest_ap=True)
+        if self.config.OpsiHazard1Leveling_TargetZone != 0:
+            zone = self.config.OpsiHazard1Leveling_TargetZone
+        else:
+            zone = 22
+        logger.hr(f'OS hazard 1 leveling, zone_id={zone}', level=1)
+        if self.zone.zone_id != zone or not self.is_zone_name_hidden:
+            self.globe_goto(self.name_to_zone(zone), types='SAFE', refresh=True)
+        self.fleet_set(self.config.OpsiFleet_Fleet)
+        self.run_strategic_search()
+        self.handle_after_auto_search()
 
-            # Last day (less than 1 day to OpSi reset):
-            # if the total action points exceed the threshold, stop CL1 and burn action points
-            # via meowfficer farming instead.
-            if remain == 0 and self._action_point_total > last_day_ap_threshold:
-                if self.is_in_opsi_explore():
-                    logger.info('OpsiExplore is running, skip meowfficer farming to burn action points')
-                else:
-                    logger.info(f'Last day to OpSi reset, total action points {self._action_point_total} '
-                                f'exceed threshold {last_day_ap_threshold}, '
-                                f'run meowfficer farming to burn action points')
-                    with self.config.multi_set():
-                        self.config.task_call('OpsiMeowfficerFarming')
-                    self.config.task_stop()
-
-            if self.config.OpsiHazard1Leveling_TargetZone != 0:
-                zone = self.config.OpsiHazard1Leveling_TargetZone
-            else:
-                zone = 22
-            logger.hr(f'OS hazard 1 leveling, zone_id={zone}', level=1)
-            if self.zone.zone_id != zone or not self.is_zone_name_hidden:
-                self.globe_goto(self.name_to_zone(zone), types='SAFE', refresh=True)
-            self.fleet_set(self.config.OpsiFleet_Fleet)
-            self.run_strategic_search()
-
-            self.handle_after_auto_search()
+    def os_hazard1_leveling(self):
+        logger.hr('OS hazard 1 leveling', level=1)
+        while True:
+            self.run_hazard1_leveling_once()
             self.config.check_task_switch()

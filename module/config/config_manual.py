@@ -30,6 +30,7 @@ class ManualConfig:
     > Sos > EventSp > EventA > EventB > EventC > EventD
     > RaidDaily > CoalitionSp > WarArchives > MaritimeEscort
     > Event > Event2 > Raid > Hospital > Coalition > Main > Main2 > Main3
+    > OpsiScheduling
     > OpsiMeowfficerFarming
     > GemsFarming
     > OpsiHazard1Leveling

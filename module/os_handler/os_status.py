@@ -34,7 +34,10 @@ class OSStatus(UI):
 
     @property
     def is_cl1_enabled(self) -> bool:
-        return self.config.is_task_enabled('OpsiHazard1Leveling')
+        # OpsiScheduling drives the hazard 1 leveling loop, so enabling it counts
+        # as having CL1 available even when the leveling task itself is off.
+        return self.config.is_task_enabled('OpsiHazard1Leveling') \
+            or self.config.is_task_enabled('OpsiScheduling')
 
     @property
     def nearest_task_cooling_down(self) -> t.Optional[Function]:

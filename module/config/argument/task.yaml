@@ -328,6 +328,10 @@ Opsi:
       - Scheduler
       - OpsiHazard1Leveling
       - OpsiFleet
+    OpsiScheduling:
+      - Scheduler
+      - OpsiScheduling
+      - OpsiFleet
     OpsiCrossMonth:
       - Scheduler
 

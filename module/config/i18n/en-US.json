@@ -258,6 +258,10 @@
       "name": "CL1 Leveling",
       "help": ""
     },
+    "OpsiScheduling": {
+      "name": "Smart Scheduling",
+      "help": "Take over the Operation Siren loop and alternate CL1 leveling with coin replenishing"
+    },
     "OpsiCrossMonth": {
       "name": "Cross Month Daily",
       "help": "    ALAS will enter OpSi 10min before OpSi reset, wait until OpSi reset but not exit OpSi. Then do the daily, obscure, abyssal and meowfficer farming to get extra gold plates. When running dailies, settings in task \"OpSiDaily\" are used, the rest function are the same.\n    IMPORTANT: Please do not touch the game while ALAS is waiting for OpSi reset."
@@ -2696,6 +2700,52 @@
     "LastDayActionPointThreshold": {
       "name": "Last Day AP Threshold",
       "help": "On the day before the OpSi reset (less than 24h left), if total action points (current + boxes) exceed this value, stop CL1 and run Meowfficer Farming to burn action points."
+    }
+  },
+  "OpsiScheduling": {
+    "_info": {
+      "name": "Smart Scheduling",
+      "help": "Hazard 1 leveling is cheap on action points but has a negative yellow coin income, so yellow coins have to be replenished in the other zones.\nWhen enabled this task takes over the Operation Siren loop: it enters Operation Siren once and alternates leveling rounds with replenish rounds, instead of switching tasks, re-initializing the session and running disabled replenish tasks for nothing.\nReplenishing starts below [Yellow Coins Preserve] and stops at [Yellow Coins Preserve + Yellow Coins Return Threshold].\nThe replenish tasks no longer need to be enabled separately, but CL1 itself should stay enabled so the shops keep skipping purple coins."
+    },
+    "OperationCoinsPreserve": {
+      "name": "Yellow Coins Preserve",
+      "help": "Replenishing starts when yellow coins drop below this value\nAlso the spending floor of the Akashi shop and the port shop\n0 follows the [Yellow Coins Preserve] of the CL1 leveling page\nRecommended >= 20200, the highest single purchase in the shop"
+    },
+    "OperationCoinsReturnThreshold": {
+      "name": "Yellow Coins Return Threshold",
+      "help": "Replenishing runs until yellow coins reach [Preserve + this value]\nReaching the preserve alone does not interrupt an ongoing replenish\n0 follows the yellow coins target of the CL1 leveling page"
+    },
+    "Cl1ActionPointReserve": {
+      "name": "CL1 Action Point Reserve",
+      "help": "Action points kept for hazard 1 leveling, a new round does not start below it\nEmpty or 0 uses the default 200"
+    },
+    "ActionPointPreserve": {
+      "name": "Coin Task Action Point Reserve",
+      "help": "Action points kept while running a replenish task\n0 follows the action point preserve of each replenish task"
+    },
+    "EnableMeowfficerFarming": {
+      "name": "Enable Meowfficer Farming",
+      "help": "Use meowfficer farming as a replenish channel\nSpends action points for yellow coins, the steadiest channel, no item needed"
+    },
+    "EnableObscure": {
+      "name": "Enable Obscure Zone",
+      "help": "Use obscure zones as a replenish channel\nConsumes obscure coordinates, skipped for a while when they run out"
+    },
+    "EnableAbyssal": {
+      "name": "Enable Abyssal Zone",
+      "help": "Use abyssal zones as a replenish channel\nConsumes abyssal coordinates, skipped for a while when they run out"
+    },
+    "EnableStronghold": {
+      "name": "Enable Siren Stronghold",
+      "help": "Use siren strongholds as a replenish channel\nOne stronghold spawns per week, it has to wait for the next spawn after being cleared"
+    },
+    "TaskPriority": {
+      "name": "Coin Task Priority",
+      "help": "Separated by >, the channel listed first is used first\nChannels not listed come last"
+    },
+    "NoContentSkipHours": {
+      "name": "No Content Skip Hours",
+      "help": "Hours a replenish channel is skipped after it reported no content\nOnly affects this task, it never rewrites the schedule of that channel"
     }
   },
   "IslandProduction": {

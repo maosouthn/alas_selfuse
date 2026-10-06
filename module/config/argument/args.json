@@ -9446,6 +9446,110 @@
       }
     }
   },
+  "OpsiScheduling": {
+    "Scheduler": {
+      "Enable": {
+        "type": "checkbox",
+        "value": false,
+        "option": [
+          true,
+          false
+        ]
+      },
+      "NextRun": {
+        "type": "datetime",
+        "value": "2020-01-01 00:00:00",
+        "validate": "datetime"
+      },
+      "Command": {
+        "type": "input",
+        "value": "OpsiScheduling",
+        "display": "hide"
+      },
+      "SuccessInterval": {
+        "type": "input",
+        "value": 30,
+        "display": "hide"
+      },
+      "FailureInterval": {
+        "type": "input",
+        "value": 30,
+        "display": "hide"
+      },
+      "ServerUpdate": {
+        "type": "input",
+        "value": "00:00",
+        "display": "hide"
+      }
+    },
+    "OpsiScheduling": {
+      "OperationCoinsPreserve": {
+        "type": "input",
+        "value": 0
+      },
+      "OperationCoinsReturnThreshold": {
+        "type": "input",
+        "value": 0
+      },
+      "Cl1ActionPointReserve": {
+        "type": "input",
+        "value": 200
+      },
+      "ActionPointPreserve": {
+        "type": "input",
+        "value": 0
+      },
+      "EnableMeowfficerFarming": {
+        "type": "checkbox",
+        "value": true
+      },
+      "EnableObscure": {
+        "type": "checkbox",
+        "value": false
+      },
+      "EnableAbyssal": {
+        "type": "checkbox",
+        "value": false
+      },
+      "EnableStronghold": {
+        "type": "checkbox",
+        "value": false
+      },
+      "TaskPriority": {
+        "type": "textarea",
+        "value": "OpsiStronghold > OpsiObscure > OpsiAbyssal > OpsiMeowfficerFarming"
+      },
+      "NoContentSkipHours": {
+        "type": "input",
+        "value": 6
+      }
+    },
+    "OpsiFleet": {
+      "Fleet": {
+        "type": "select",
+        "value": 1,
+        "option": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "Submarine": {
+        "type": "checkbox",
+        "value": false,
+        "display": "hide"
+      }
+    },
+    "Storage": {
+      "Storage": {
+        "type": "storage",
+        "value": {},
+        "valuetype": "ignore",
+        "display": "disabled"
+      }
+    }
+  },
   "OpsiCrossMonth": {
     "Scheduler": {
       "Enable": {

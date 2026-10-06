@@ -277,7 +277,9 @@ class AzurLaneConfig(ConfigUpdater, ManualConfig, GeneratedConfig, ConfigWatcher
     def update(self):
         self.load()
         self.config_override()
-        self.bind(self.task)
+        # 大世界智能调度代理执行子任务期间，绑定目标子任务而不是调度任务，
+        # 否则子任务中途写入配置会把绑定重置回调度任务。
+        self.bind(getattr(self, '_bind_task_override', self.task))
         self.save()
 
     def override(self, **kwargs):
@@ -609,7 +611,8 @@ class AzurLaneConfig(ConfigUpdater, ManualConfig, GeneratedConfig, ConfigWatcher
         if self.stop_event is not None:
             if self.stop_event.is_set():
                 return True
-        prev = self.task
+        # 代理执行期间以调度任务（owner）为比对基准，避免子任务被误判为已切换。
+        prev = getattr(self, '_task_switch_owner', self.task)
         self.load()
         new = self.get_next()
         if prev == new:

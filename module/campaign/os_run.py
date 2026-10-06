@@ -64,6 +64,15 @@ class OSCampaignRun(OSMapOperation):
         except ActionPointLimit:
             self.config.task_delay(server_update=True)
 
+    def opsi_scheduling(self):
+        try:
+            campaign = self.load_campaign()
+            campaign.os_scheduling()
+        except ActionPointLimit:
+            # The scheduler manages the action points of its sub tasks itself, an
+            # ActionPointLimit here means it could not start a round at all.
+            self.config.task_delay(server_update=True)
+
     def opsi_obscure(self):
         try:
             campaign = self.load_campaign()

@@ -1,6 +1,7 @@
 from module.logger import logger
 from module.os.fleet import BossFleet
 from module.os.map import OSMap
+from module.os.tasks.task_context import is_proxied
 
 
 class OpsiStronghold(OSMap):
@@ -22,6 +23,11 @@ class OpsiStronghold(OSMap):
         self.globe_update()
         zone = self.find_siren_stronghold()
         if zone is None:
+            if is_proxied(self.config):
+                # The scheduler proxies this task, report "no content" so it moves
+                # on to another replenish source instead of stopping itself.
+                self._coin_task_no_content = self.config.task.command
+                return False
             # No siren stronghold, delay next run to tomorrow.
             self.config.task_delay(server_update=True)
             self.config.task_stop()

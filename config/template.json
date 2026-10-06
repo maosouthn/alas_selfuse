@@ -1945,6 +1945,35 @@
       "Storage": {}
     }
   },
+  "OpsiScheduling": {
+    "Scheduler": {
+      "Enable": false,
+      "NextRun": "2020-01-01 00:00:00",
+      "Command": "OpsiScheduling",
+      "SuccessInterval": 30,
+      "FailureInterval": 30,
+      "ServerUpdate": "00:00"
+    },
+    "OpsiScheduling": {
+      "OperationCoinsPreserve": 0,
+      "OperationCoinsReturnThreshold": 0,
+      "Cl1ActionPointReserve": 200,
+      "ActionPointPreserve": 0,
+      "EnableMeowfficerFarming": true,
+      "EnableObscure": false,
+      "EnableAbyssal": false,
+      "EnableStronghold": false,
+      "TaskPriority": "OpsiStronghold > OpsiObscure > OpsiAbyssal > OpsiMeowfficerFarming",
+      "NoContentSkipHours": 6
+    },
+    "OpsiFleet": {
+      "Fleet": 1,
+      "Submarine": false
+    },
+    "Storage": {
+      "Storage": {}
+    }
+  },
   "OpsiCrossMonth": {
     "Scheduler": {
       "Enable": false,
