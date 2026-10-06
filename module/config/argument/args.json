@@ -9525,23 +9525,6 @@
         "value": 6
       }
     },
-    "OpsiFleet": {
-      "Fleet": {
-        "type": "select",
-        "value": 1,
-        "option": [
-          1,
-          2,
-          3,
-          4
-        ]
-      },
-      "Submarine": {
-        "type": "checkbox",
-        "value": false,
-        "display": "hide"
-      }
-    },
     "Storage": {
       "Storage": {
         "type": "storage",

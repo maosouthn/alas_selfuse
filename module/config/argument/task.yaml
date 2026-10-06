@@ -331,7 +331,6 @@ Opsi:
     OpsiScheduling:
       - Scheduler
       - OpsiScheduling
-      - OpsiFleet
     OpsiCrossMonth:
       - Scheduler
 

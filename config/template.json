@@ -1966,10 +1966,6 @@
       "TaskPriority": "OpsiStronghold > OpsiObscure > OpsiAbyssal > OpsiMeowfficerFarming",
       "NoContentSkipHours": 6
     },
-    "OpsiFleet": {
-      "Fleet": 1,
-      "Submarine": false
-    },
     "Storage": {
       "Storage": {}
     }
