@@ -459,6 +459,9 @@ OpsiScheduling:
 IslandCollect:
   Scheduler:
     ServerUpdate: 03:00, 18:00
+IslandTransport:
+  Scheduler:
+    ServerUpdate: 03:00, 18:00
 
 # ==================== Tool ====================
 

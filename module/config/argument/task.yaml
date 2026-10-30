@@ -345,6 +345,8 @@ Island:
     IslandOrder:
       - Scheduler
       - IslandOrder
+    IslandTransport:
+      - Scheduler
     IslandFreebie:
       - Scheduler
       - IslandFreebie
