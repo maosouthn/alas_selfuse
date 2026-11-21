@@ -468,7 +468,7 @@ class GeneratedConfig:
     OpsiScheduling_NoContentSkipHours = 6
 
     # Group `IslandGeneral`
-    IslandGeneral_Season = 'season_20261105_cn'  # season_20260806_cn, season_20261105_cn
+    IslandGeneral_Season = 'season_20261105_cn'  # season_20261105_cn
 
     # Group `IslandProduction`
     IslandProduction_HardFloorItems = '{}'
